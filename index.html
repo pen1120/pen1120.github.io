@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<meta name="generator" content="Hugo 0.34" />
+    <meta charset="UTF-8">
+    <meta http-equiv="x-dns-prefetch-control" content="on">
+    <link rel="dns-prefetch" href="https://o243f9mnq.qnssl.com/" />
+    <link rel="dns-prefetch" href="//cdn.bootcss.com" />
+    <link rel="dns-prefetch" href="//secure.gravatar.com" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-transform" />
+    <meta http-equiv="Cache-Control" content="no-siteapp" />
+    
+    <link href="https://pen1120.github.io/index.xml" rel="alternate" type="application/rss+xml" title="Zen" /> 
+    
+    <link rel="shortcut icon" href="https://pen1120.github.io/images/favicon.png">
+    <link rel="apple-touch-icon" href="https://pen1120.github.io/images/apple-touch-icon.png">
+    <title>
+        
+        Zen
+        
+    </title>
+    <meta name="keywords" content=" " />
+    <meta name="description" content=" " />
+    <link href="//cdn.bootcss.com/highlight.js/9.10.0/styles/xcode.min.css" rel="stylesheet">
+    <link href="https://pen1120.github.io/css/style.min.css?20170331" rel="stylesheet">
+    
+</head>
+
+
+<body class="bg-grey" gtools_scp_screen_capture_injected="true">
+
+    <header id="header" class="header bg-white">
+        <div class="navbar-container">
+            <a href="https://pen1120.github.io" class="navbar-logo" style="color: #5f5f5f">Zen</a>
+            <div class="navbar-menu">
+            
+                <a href="https://pen1120.github.io/post/">文章</a>  
+            
+                <a href="https://pen1120.github.io/tags/">标签</a>  
+            
+                <a href="https://pen1120.github.io/about">关于</a>  
+            
+            </div>
+            
+            <div class="navbar-mobile-menu" onclick=""> 
+                <span class="icon-menu cross"><span class="middle"></span></span>
+                <ul>
+                
+                <li><a href="https://pen1120.github.io/post/">文章</a></li> 
+                
+                <li><a href="https://pen1120.github.io/tags/">标签</a></li> 
+                
+                <li><a href="https://pen1120.github.io/about">关于</a></li> 
+                
+                </ul>
+            </div>
+        </div>
+    </header>
+<div class="main-content index-page clearfix ">
+    <div class="post-lists">
+        <div class="post-lists-body">
+        
+        
+        <div class="post-list-item">
+    <div class="post-list-item-container">
+        
+            
+            
+                        
+
+                <div class="item-thumb bg-deepgrey" style="background-image:url(/images/thumbs/64.jpg);"></div>
+            
+            
+        <a href="https://pen1120.github.io/post/ubuntu%E9%87%8D%E8%A3%85/">
+            <div class="item-desc">
+                <p>#-2 vi ~/.bashrc
+alias vb='vi ~/.bashrc' alias sb='source ~/.bashrc' alias dow='cd /home/pen/Downloads' alias doc='cd /home/pen/Documents' alias af='sudo apt -f install' alias au='sudo apt update' alias arm='sudo apt autoremove' #mysql alias m9527='/apps/svr/mysql/bin/mysql -udba --socket=/tmp/mysql9527.sock -plocaldba' alias sm9527='/apps/svr/mysql/bin/mysqld_safe --defaults-file=/apps/conf/mysql/mysql57_9527.cnf &amp; &gt;/dev/null' alias lm=&quot;ps aux | grep mysql &quot; export XMODIFIERS=&quot;@im=fcitx&quot; export PATH=$PATH:/apps/svr/mysql/bin  #-1 apt换源
+#北京的apt选择搜狐源，广东的apt选择网易源 #但是要提防换源可能导致apt resource里的依赖库版本过高，以至于很多软件无法正常安装 sudo cp /etc/apt/sources.list /etc/apt/sources.list.bak sudo echo '' &gt; /etc/apt/sources.list &amp;&amp; sudo vi /etc/apt/sources.list  deb http://mirrors. </p>
+            </div>
+        </a>
+        <div class="item-slant reverse-slant bg-deepgrey"></div>
+        <div class="item-slant"></div>
+        <div class="item-label">
+            <div class="item-title"><a href="https://pen1120.github.io/post/ubuntu%E9%87%8D%E8%A3%85/">Ubuntu重装</a></div>
+            <div class="item-meta clearfix">
+                
+                 
+                
+                <div class="item-meta-ico bg-ico-design" style="background: url(https://pen1120.github.io/images/bg-ico.png) no-repeat;background-size: 40px auto;"></div>
+                 
+                
+                <div class="item-meta-cat"><a href="https://pen1120.github.io/categories/ubuntu">Ubuntu</a></div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+        
+        <div class="post-list-item">
+    <div class="post-list-item-container">
+        
+            
+            
+                        
+
+                <div class="item-thumb bg-deepgrey" style="background-image:url(/images/thumbs/34.jpg);"></div>
+            
+            
+        <a href="https://pen1120.github.io/post/%E8%87%AA%E5%A2%9E%E9%94%81/">
+            <div class="item-desc">
+                <p>#1. 背景 在MySQL的表设计中经常使用自增字段作为表主键，其中的优势在于：
+ 自增字段对业务透明，后期不会存在更新主键等操作，在多数据中心同步中避免了很多问题； InnoDB使用了B+Tree作为存储的数据结构，数据按照主键组织存储，写入时保证了性能，避免了InnoDB Page分裂，并且提高了空间利用率； 自增字段只占4或8个字节，一个page内存可以存储更多的数据，buffer pool缓存命中率更高。 #TODO buffer pool里放的难道是指针吗？ 为什么上一句会这么说。  但是自增字段作为主键也会带来一些问题： - AUTO_INCREMENT热点争用； - replace逻辑可能导致准备AUTO_INCREMENT不一致，在主备切换后会出现duplicate key问题 #2. 理论基础
+本节描述了用于生成自增值的AUTO_INCREMENT锁模式的行为，以及这些模式是如何影响复制的。数据库启动时使用innodb_autoinc_lock_mode的参数来配置AUTO_INCREMENT的锁模式。 ##2.1 锁的解释 根据锁持有的时间粒度，分为： 1. 内存级别：类似mutex，很快释放 2. 语句级别：statement结束，释放 3. 事务级别：transaction提交或者回滚才释放 4. 会话级别：session级别，连接断开才释放 ##2.2 术语描述
+ &ldquo;INSERT-like&rdquo; 在表中生成新行的语句，包括了INSERT,INSERT...SELECT,REPLACE,REPLACE...SELECT和LOAD DATA，这种语句包括了&rdquo;简单插入&rdquo;，&rdquo;批量插入&rdquo;和&rdquo;混合插入&rdquo;。 &ldquo;简单插入(Simple Inserts)&rdquo; 可以提前确定要插入的行数的语句。这指的是没有嵌套子查询的单行和多行INSERT和REPLACE语句，但是不包括INSERT ... ON DUPLICATE KEY UPDATE。 &ldquo;批量插入(Bulk Inserts)&rdquo; 无法提前确定要插入的行数的语句。这指的是INSERT...SELECT,REPLACE...SELECT,和LOAD DATA语句，不包括简单的INSERT。每一行在执行时，InnoDB会一次性为AUTO_INCREMENT列分配一个新值。 &ldquo;混合插入(Mixed-mode Inserts)&rdquo; 这些属于&rdquo;简单插入&rdquo;的语句，但是它们指定了一些新行（但不是全部）的自增项，例如： INSERT INTO t1 (c1,c2) VALUES (1,'a'), (NULL,'b'), (5,'c'), (NULL,'d'); 另一种&rdquo;混合插入&rdquo;指的是INSERT ... ON DUPLICATE KEY UPDATE，最糟糕的情况是INSERT后面跟着一个UPDATE，其中AUTO_INCREMENT列的值可能会在更新阶段使用。  ##2. </p>
+            </div>
+        </a>
+        <div class="item-slant reverse-slant bg-deepgrey"></div>
+        <div class="item-slant"></div>
+        <div class="item-label">
+            <div class="item-title"><a href="https://pen1120.github.io/post/%E8%87%AA%E5%A2%9E%E9%94%81/">自增锁</a></div>
+            <div class="item-meta clearfix">
+                
+                 
+                
+                <div class="item-meta-ico bg-ico-design" style="background: url(https://pen1120.github.io/images/bg-ico.png) no-repeat;background-size: 40px auto;"></div>
+                 
+                
+                <div class="item-meta-cat"><a href="https://pen1120.github.io/categories/mysql">MySQL</a></div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+        
+        <div class="post-list-item">
+    <div class="post-list-item-container">
+        
+            
+            
+                        
+
+                <div class="item-thumb bg-deepgrey" style="background-image:url(/images/thumbs/34.jpg);"></div>
+            
+            
+        <a href="https://pen1120.github.io/post/oak/">
+            <div class="item-desc">
+                <p>1. 安装  略 https://github.com/nuodb/sysbench
+2. 测试 2.1 准备测试环境 sysbench --test=/usr/share/doc/sysbench/tests/db/insert.lua --oltp-table-size=100000 --mysql-table-engine=innodb --db-driver=mysql --mysql-user=dba --mysql-password=xxxx --mysql-port=9527 --mysql-host=localhost --mysql-db=bench --mysql-socket=/tmp/mysql9527.sock --events=0 --time=60 --oltp-tables-count=2 --report-interval=10 --threads=2 prepare sysbench --test=/usr/share/doc/sysbench/tests/db/insert.lua --oltp-table-size=100000 --mysql-table-engine=innodb --db-driver=mysql --mysql-user=dba --mysql-password=xxxx --mysql-port=9527 --mysql-host=localhost --mysql-db=bench --mysql-socket=/tmp/mysql9527.sock --events=0 --time=60 --oltp-tables-count=2 --report-interval=10 --threads=2 run  2.2 开始DDL python /apps/sh/tool/openark-kit/scripts/oak-online-alter-table -u dba --ask-pass -S /tmp/mysql9527.sock -d bench -t sbtest -g new_sbtest -a &quot;add last_update_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,add key last_update_time(last_update_time)&quot; --sleep=300 --skip-delete-pass -- Connecting to MySQL Password: #自然是输入密码 -- Table bench. </p>
+            </div>
+        </a>
+        <div class="item-slant reverse-slant bg-deepgrey"></div>
+        <div class="item-slant"></div>
+        <div class="item-label">
+            <div class="item-title"><a href="https://pen1120.github.io/post/oak/">Oak</a></div>
+            <div class="item-meta clearfix">
+                
+                 
+                
+                <div class="item-meta-ico bg-ico-design" style="background: url(https://pen1120.github.io/images/bg-ico.png) no-repeat;background-size: 40px auto;"></div>
+                 
+                
+                <div class="item-meta-cat"><a href="https://pen1120.github.io/categories/mysql">MySQL</a></div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+        
+        <div class="post-list-item">
+    <div class="post-list-item-container">
+        
+            
+            
+                        
+
+                <div class="item-thumb bg-deepgrey" style="background-image:url(/images/thumbs/34.jpg);"></div>
+            
+            
+        <a href="https://pen1120.github.io/post/mysql/%E5%88%9D%E5%A7%8B%E5%8C%96%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6/">
+            <div class="item-desc">
+                <p>搭建 复制数据库 #保证主从库配置基本一致，并且拥有各自的server-id [apps@master apps]$ cat /apps/conf/mysql/mysql57_9527.cnf | egrep '^server-id' server-id=2003433547 [apps@slave apps]$ cat /apps/conf/mysql/mysql57_9527.cnf | egrep '^server-id' server-id=2003433548  #新建复制账号 master&gt; grant replication on *.* to 'repl'@'targetip' identified by 'repl'; Query OK, 0 rows affected (0.02 sec) master&gt; flush privileges; Query OK, 0 rows affected (0.02 sec) #如果主库有数据，记录当前日志文件的位置，再导出数据并导入到从库中，保持两端数据一致 master&gt; show master status; +------------------+----------+--------------+------------------+-------------------------------------------+ | File | Position | Binlog_Do_DB | Binlog_Ignore_DB | Executed_Gtid_Set | +------------------+----------+--------------+------------------+-------------------------------------------+ | mysql-bin.000001 | 53895724 | | | acaa7c2b-7b51-11e7-af97-fa163eb9fda0:1-35 | +------------------+----------+--------------+------------------+-------------------------------------------+ 1 row in set (0. </p>
+            </div>
+        </a>
+        <div class="item-slant reverse-slant bg-deepgrey"></div>
+        <div class="item-slant"></div>
+        <div class="item-label">
+            <div class="item-title"><a href="https://pen1120.github.io/post/mysql/%E5%88%9D%E5%A7%8B%E5%8C%96%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6/">初始化主从复制</a></div>
+            <div class="item-meta clearfix">
+                
+                 
+                
+                <div class="item-meta-ico bg-ico-design" style="background: url(https://pen1120.github.io/images/bg-ico.png) no-repeat;background-size: 40px auto;"></div>
+                 
+                
+                <div class="item-meta-cat"><a href="https://pen1120.github.io/categories/mysql">MySQL</a></div>
+                
+            </div>
+        </div>
+    </div>
+</div>
+        
+        </div>
+    </div>
+     
+
+
+
+</div>
+
+<footer id="footer" class="footer bg-white">
+    <div class="footer-social">
+        <div class="footer-container clearfix">
+            <div class="social-list">
+                
+                
+                <a class="social" target="blank" href="mailto:wu.pen1120@gmail.com">Email</a>  
+                
+                <a class="social" target="blank" href="https://github.com/pen1120">Github</a>  
+                
+                <a class="social" target="blank" href="https://pen1120.github.io/index.xml">RSS</a>  
+            </div>
+        </div>
+    </div>
+    <div class="footer-meta">
+        <div class="footer-container">
+            <div class="meta-item meta-copyright">
+                <div class="meta-copyright-info">
+                    <br>
+                    <div class="info-text">
+                        <p id="chakhsu"> </p>
+                        <p>Theme is <a href="https://github.com/mjyi/Gemini" target="_blank" rel="nofollow">Gemini</a> by Chakhsu</p>
+                        <p>Powered by <a href="https://gohugo.io/" target="_blank" rel="nofollow">Hugo</a></p>
+                        <p> &copy; 2017 <a href="https://pen1120.github.io">pen.wyp</a></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="meta-item meta-comments">
+                <h3 class="meta-title">CATEGORIES</h3>
+                <li><a href="https://pen1120.github.io/categories/mysql">Mysql</a>(3)</li>
+                <li><a href="https://pen1120.github.io/categories/ubuntu">Ubuntu</a>(1)</li>
+            </div>
+            <div class="meta-item meta-posts">
+                <h3 class="meta-title">RECENT POSTS</h3>
+                 
+                <li><a href="https://pen1120.github.io/post/ubuntu%E9%87%8D%E8%A3%85/">Ubuntu重装</a></li>
+                  
+                <li><a href="https://pen1120.github.io/post/%E8%87%AA%E5%A2%9E%E9%94%81/">自增锁</a></li>
+                  
+                <li><a href="https://pen1120.github.io/post/oak/">Oak</a></li>
+                  
+                <li><a href="https://pen1120.github.io/post/mysql/%E5%88%9D%E5%A7%8B%E5%8C%96%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6/">初始化主从复制</a></li>
+                   
+
+            </div>
+        </div>
+    </div>
+    </div>
+</footer>
+
+
+<script src="//cdn.bootcss.com/headroom/0.9.1/headroom.min.js"></script>
+<script src="//cdn.bootcss.com/highlight.js/9.10.0/highlight.min.js"></script>
+<script src="https://pen1120.github.io/js/instantclick.min.js?v20140319"></script>
+<script src="//cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js"></script>
+<script>
+
+
+
+    var header = new Headroom(document.getElementById("header"), {
+        tolerance: 0,
+        offset: 70,
+        classes: {
+            initial: "animated",
+            pinned: "slideDown",
+            unpinned: "slideUp"
+        }
+    });
+    header.init();
+    var chakhsu = function (r) {
+        function t() {
+            return b[Math.floor(Math.random() * b.length)]
+        }
+
+        function e() {
+            return String.fromCharCode(94 * Math.random() + 33)
+        }
+
+        function n(r) {
+            for (var n = document.createDocumentFragment(), i = 0; r > i; i++) {
+                var l = document.createElement("span");
+                l.textContent = e(), l.style.color = t(), n.appendChild(l)
+            }
+            return n
+        }
+
+        function i() {
+            var t = o[c.skillI];
+            c.step ? c.step-- : (c.step = g, c.prefixP < l.length ? (c.prefixP >= 0 && (c.text += l[c.prefixP]), c.prefixP++) : "forward" === c.direction ? c.skillP < t.length ? (c.text += t[c.skillP], c.skillP++) : c.delay ? c.delay-- : (c.direction = "backward", c.delay = a) : c.skillP > 0 ? (c.text = c.text.slice(0, -1), c.skillP--) : (c.skillI = (c.skillI + 1) % o.length, c.direction = "forward")), r.textContent = c.text, r.appendChild(n(c.prefixP < l.length ? Math.min(s, s + c.prefixP) : Math.min(s, t.length - c.skillP))), setTimeout(i, d)
+        }
+        var l = "",
+            o = ["I am a DBA","Work in Guangzhou"].map(function (r) {
+                return r + "."
+            }),
+            a = 2,
+            g = 1,
+            s = 5,
+            d = 75,
+            b = ["rgb(110,64,170)", "rgb(150,61,179)", "rgb(191,60,175)", "rgb(228,65,157)", "rgb(254,75,131)", "rgb(255,94,99)", "rgb(255,120,71)", "rgb(251,150,51)", "rgb(226,183,47)", "rgb(198,214,60)", "rgb(175,240,91)", "rgb(127,246,88)", "rgb(82,246,103)", "rgb(48,239,130)", "rgb(29,223,163)", "rgb(26,199,194)", "rgb(35,171,216)", "rgb(54,140,225)", "rgb(76,110,219)", "rgb(96,84,200)"],
+            c = {
+                text: "",
+                prefixP: -s,
+                skillI: 0,
+                skillP: 0,
+                direction: "forward",
+                delay: a,
+                step: g
+            };
+        i()
+    };
+    chakhsu(document.getElementById('chakhsu'));
+    if ('addEventListener' in document) {
+        document.addEventListener('DOMContentLoaded', function () {
+            FastClick.attach(document.body);
+        }, false);
+    }
+
+</script>
+<script type="text/x-mathjax-config"> MathJax.Hub.Config({ showProcessingMessages: false, messageStyle: "none", extensions: ["tex2jax.js"], jax: ["input/TeX",
+    "output/HTML-CSS"], tex2jax: { inlineMath: [ ['$','$'], ["\\(","\\)"] ], displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+    skipTags: ['script', 'noscript', 'style', 'textarea', 'pre','code','a'], ignoreClass:"comment-content" }, "HTML-CSS":
+    { availableFonts: ["STIX","TeX"], showMathMenu: false } }); MathJax.Hub.Queue(["Typeset",MathJax.Hub]); </script>
+<script src="//cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+<script data-no-instant>
+    InstantClick.on('change', function (isInitialLoad) {
+        var blocks = document.querySelectorAll('pre code');
+        for (var i = 0; i < blocks.length; i++) {
+            hljs.highlightBlock(blocks[i]);
+        }
+        if (isInitialLoad === false) {
+            if (typeof ga !== 'undefined') ga('send', 'pageview', location.pathname + location.search);
+            if (typeof MathJax !== 'undefined') {
+                MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+            }
+        }
+    });
+    InstantClick.init('mousedown');
+
+</script>
+
+
+</body>
+
+</html>
+

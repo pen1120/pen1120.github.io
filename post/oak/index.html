@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="x-dns-prefetch-control" content="on">
+    <link rel="dns-prefetch" href="https://o243f9mnq.qnssl.com/" />
+    <link rel="dns-prefetch" href="//cdn.bootcss.com" />
+    <link rel="dns-prefetch" href="//secure.gravatar.com" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-transform" />
+    <meta http-equiv="Cache-Control" content="no-siteapp" />
+    
+    <link rel="shortcut icon" href="https://pen1120.github.io/images/favicon.png">
+    <link rel="apple-touch-icon" href="https://pen1120.github.io/images/apple-touch-icon.png">
+    <title>
+        
+        Oak - Zen
+        
+    </title>
+    <meta name="keywords" content=" " />
+    <meta name="description" content=" " />
+    <link href="//cdn.bootcss.com/highlight.js/9.10.0/styles/xcode.min.css" rel="stylesheet">
+    <link href="https://pen1120.github.io/css/style.min.css?20170331" rel="stylesheet">
+    
+</head>
+
+
+<body class="bg-white" gtools_scp_screen_capture_injected="true">
+    
+    <header id="header" class="header bg-white">
+        <div class="navbar-container">
+            <a href="https://pen1120.github.io" class="navbar-logo" style="color: #5f5f5f">Zen</a>
+            <div class="navbar-menu">
+            
+                <a href="https://pen1120.github.io/post/">文章</a>  
+            
+                <a href="https://pen1120.github.io/tags/">标签</a>  
+            
+                <a href="https://pen1120.github.io/about">关于</a>  
+            
+            </div>
+            
+            <div class="navbar-mobile-menu" onclick=""> 
+                <span class="icon-menu cross"><span class="middle"></span></span>
+                <ul>
+                
+                <li><a href="https://pen1120.github.io/post/">文章</a></li> 
+                
+                <li><a href="https://pen1120.github.io/tags/">标签</a></li> 
+                
+                <li><a href="https://pen1120.github.io/about">关于</a></li> 
+                
+                </ul>
+            </div>
+        </div>
+    </header>
+    <article class="main-content page-page">
+        <div class="post-header">
+            <h1 class="post-title" itemprop="name headline">
+                Oak
+            </h1>
+            <div class="post-data">
+                Published on Jan 26, 2018 ,5 min reading time
+            </div>
+        </div>
+        <div id="post-content" class="post-content">
+            
+<p class="post-tags"> 
+	
+	<a href="https://pen1120.github.io/tags/mysql">MySQL</a>
+	
+	<a href="https://pen1120.github.io/tags/tech">tech</a>
+	
+</p>
+
+ 
+
+<h1 id="1-安装">1. 安装</h1>
+
+<blockquote>
+<p>略 <a href="https://github.com/nuodb/sysbench">https://github.com/nuodb/sysbench</a></p>
+
+<h1 id="2-测试">2. 测试</h1>
+
+<h2 id="2-1-准备测试环境">2.1 准备测试环境</h2>
+
+<pre><code>sysbench  --test=/usr/share/doc/sysbench/tests/db/insert.lua --oltp-table-size=100000 --mysql-table-engine=innodb --db-driver=mysql --mysql-user=dba --mysql-password=xxxx --mysql-port=9527 --mysql-host=localhost --mysql-db=bench --mysql-socket=/tmp/mysql9527.sock --events=0 --time=60 --oltp-tables-count=2 --report-interval=10 --threads=2 prepare
+
+sysbench  --test=/usr/share/doc/sysbench/tests/db/insert.lua --oltp-table-size=100000 --mysql-table-engine=innodb --db-driver=mysql --mysql-user=dba --mysql-password=xxxx --mysql-port=9527 --mysql-host=localhost --mysql-db=bench --mysql-socket=/tmp/mysql9527.sock --events=0 --time=60 --oltp-tables-count=2 --report-interval=10 --threads=2 run
+</code></pre>
+
+<h2 id="2-2-开始ddl">2.2 开始DDL</h2>
+
+<pre><code>python /apps/sh/tool/openark-kit/scripts/oak-online-alter-table -u dba --ask-pass -S /tmp/mysql9527.sock -d bench -t sbtest -g new_sbtest -a &quot;add last_update_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,add key last_update_time(last_update_time)&quot; --sleep=300 --skip-delete-pass
+-- Connecting to MySQL
+Password:   #自然是输入密码
+-- Table bench.sbtest is of engine innodb
+-- Checking for UNIQUE columns on bench.sbtest, by which to chunk
+-- Possible UNIQUE KEY column names in bench.sbtest:
+-- - id
+-- Table bench.new_sbtest has been created
+-- Table bench.new_sbtest has been altered
+-- Checking for UNIQUE columns on bench.new_sbtest, by which to chunk
+-- Possible UNIQUE KEY column names in bench.new_sbtest:
+-- - id
+-- Checking for UNIQUE columns on bench.sbtest, by which to chunk
+-- - Found following possible unique keys:
+-- - id (int)
+-- Chosen unique key is 'id'
+-- Shared columns: c, pad, k, id
+-- Created AD trigger   #创建触发器，用以引导新的数据
+-- Created AU trigger
+-- Created AI trigger
+-- Attempting to lock tables
+
+-- Tables locked WRITE
+-- id (min, max) values: ([1L], [104985L])
+-- Tables unlocked
+-- - Reminder: altering bench.sbtest: add last_update_time timestamp...
+-- Copying range (1), (1000), progress: 0%
+-- + Will sleep for 0.3 seconds
+......
+-- Copying range 100% complete. Number of rows: 104985
+-- Ghost table creation completed. Note that triggers on bench.sbtest were not removed
+</code></pre>
+
+<h2 id="2-3-一致性检查">2.3 一致性检查</h2>
+
+<pre><code># OAK在Online DDL进行前后，都可以正常对原表进行DML操作，完成后可使用以下命令进行数据一致性检验
+mysql&gt; select sum(crc32(concat(ifnull(id,'NULL'),ifnull(k,'NULL')))) as sum from sbtest
+union all
+select sum(crc32(concat(ifnull(id,'NULL'),ifnull(k,'NULL')))) as sum from new_sbtest;
+
+mysql&gt; select count(*) from sbtest
+union all
+select count(*) from new_sbtest;
+
+mysql&gt; show create table new_sbtest \G;
+*************************** 1. row ***************************
+       Table: new_sbtest
+Create Table: CREATE TABLE `new_sbtest` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `k` int(10) unsigned NOT NULL DEFAULT '0',
+  `c` char(120) NOT NULL DEFAULT '',
+  `pad` char(60) NOT NULL DEFAULT '',
+  `last_update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`), #新增的列以及索引
+  KEY `k_2` (`k`),
+  KEY `last_update_time` (`last_update_time`)
+) ENGINE=InnoDB AUTO_INCREMENT=11111122 DEFAULT CHARSET=utf8 MAX_ROWS=1000000
+1 row in set (0.00 sec)
+
+</code></pre>
+
+<h2 id="2-4-重命名">2.4 重命名</h2>
+
+<pre><code>#重命名是原子性操作，执行后便完成了onlineDDL的整个过程
+use lyj;
+rename table sbtest to old_sbtest,new_sbtest to sbtest;
+drop trigger sbtest_AI_oak;
+drop trigger sbtest_AU_oak;
+drop trigger sbtest_AD_oak;
+drop table old_sbtest;
+</code></pre>
+
+<h1 id="3-出错">3. 出错</h1>
+
+<h2 id="3-1-恢复主从关系以及继续推进onlineddl">3.1 恢复主从关系以及继续推进onlineDDL</h2>
+
+<p>如果重命名在从库上操作，并且已经删除了old_sbtest和触发器。</p>
+
+<pre><code>#在从库中重建new_sbtest
+create table new_sbtest as select * from sbtest;
+
+#在从库上重建trigger(使用主库中查到的创建脚本)
+CREATE DEFINER=`dba`@`%` TRIGGER bench.sbtest_AI_oak AFTER INSERT ON bench.sbtest
+        FOR EACH ROW
+            REPLACE INTO bench.new_sbtest (`c`, `pad`, `k`, `id`) VALUES (NEW.`c`, NEW.`pad`, NEW.`k`, NEW.`id`);
+
+DELIMITER //
+CREATE TRIGGER bench.sbtest_AU_oak AFTER UPDATE ON bench.sbtest
+        FOR EACH ROW
+        BEGIN
+            DELETE FROM bench.new_sbtest WHERE (id) = (OLD.id);
+            REPLACE INTO bench.new_sbtest (`c`, `pad`, `k`, `id`) VALUES (NEW.`c`, NEW.`pad`, NEW.`k`, NEW.`id`);
+        END;
+//
+DELIMITER ;
+#Mysql解释器一遇到;号时就结束，回车以后就执行，所以加delimiter关键字，delimiter作用就是把;分号替换成指定的符号。
+
+CREATE DEFINER=`dba`@`%` TRIGGER bench.sbtest_AD_oak AFTER DELETE ON bench.sbtest
+        FOR EACH ROW
+            DELETE FROM bench.new_sbtest WHERE (id) = (OLD.id);
+
+# 在从库上启动slave同步
+start slave;
+
+# 查看slave状态
+show slave status\G;
+
+#正常而言，现在就可以正常使用了
+</code></pre>
+
+<h2 id="3-2-疑问">3.2 疑问</h2>
+
+<p>这里我的疑问就是，其实从库这里的sbtest库已经是更新过结构的了，而主库的sbtest还是没有的，如果该DDL是为该表增加一个唯一的列，那主从复制时的同一条语句将会产生不同的效果。怎么处理呢？
+靠，是我多虑了。正常情况下是无法为一个表增加一个unique或者非空的列的，或者说，MySQL本身默认允许加了unique限制的列存在多个NULL，索引号在这里，触发器作用过后的语句会添加一个NULL，这个操作是可行的；至于非空的话那就是依照每个列的属性，赋予一个默认的值。
+不行，我还是得做一下实验。</p>
+
+<pre><code>python /apps/sh/tool/openark-kit/scripts/oak-online-alter-table -u dba --ask-pass -S /tmp/mysql9527.sock -d bench -t sbtest -g new_sbtest -a &quot;add unique_c not null&quot; --sleep=1 --skip-delete-pass
+-- Connecting to MySQL
+Password:
+-- Table bench.sbtest is of engine innodb
+-- Checking for UNIQUE columns on bench.sbtest, by which to chunk
+-- Possible UNIQUE KEY column names in bench.sbtest:
+-- - id
+-- Table bench.new_sbtest has been created
+&lt;type 'exceptions.Exception'&gt; (1064, &quot;You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'not null' at line 1&quot;)
+-- ERROR: Errors found. Initiating cleanup
+-- Tables unlocked
+-- ERROR: (1064, &quot;You have an error in your SQL syntax; check the manual that corresponds to your MySQL server version for the right syntax to use near 'not null' at line 1&quot;)
+[root@william01guo-gz-web-upwup ~]# python /apps/sh/tool/openark-kit/scripts/oak-online-alter-table -u dba --ask-pass -S /tmp/mysql9527.sock -d bench -t sbtest -g new_sbtest -a &quot;add unique_c int not null&quot; --sleep=1 --skip-delete-pass
+-- Connecting to MySQL
+Password:
+-- ERROR: Errors found. Initiating cleanup
+-- Tables unlocked
+-- ERROR: Ghost table: bench.new_sbtest already exists.
+[root@william01guo-gz-web-upwup ~]# python /apps/sh/tool/openark-kit/scripts/oak-online-alter-table -u dba --ask-pass -S /tmp/mysql9527.sock -d bench -t sbtest -g new_sbtest -a &quot;add unique_c int not null&quot; --sleep=1 --skip-delete-pass
+-- Connecting to MySQL
+Password:
+-- Table bench.sbtest is of engine innodb
+-- Checking for UNIQUE columns on bench.sbtest, by which to chunk
+-- Possible UNIQUE KEY column names in bench.sbtest:
+-- - id
+-- Table bench.new_sbtest has been created
+-- Table bench.new_sbtest has been altered
+-- Checking for UNIQUE columns on bench.new_sbtest, by which to chunk
+-- Possible UNIQUE KEY column names in bench.new_sbtest:
+-- - id
+-- Checking for UNIQUE columns on bench.sbtest, by which to chunk
+-- - Found following possible unique keys:
+-- - id (int)
+-- Chosen unique key is 'id'
+-- Shared columns: c, pad, k, id
+-- Created AD trigger
+-- Created AU trigger
+-- Created AI trigger
+-- Attempting to lock tables
+
+-- Tables locked WRITE
+-- id (min, max) values: ([1L], [2000L])
+-- Tables unlocked
+-- - Reminder: altering bench.sbtest: add unique_c int not null...
+-- Copying range (1), (1000), progress: 0%
+/apps/sh/tool/openark-kit/scripts/oak-online-alter-table:84: Warning: Field 'unique_c' doesn't have a default value
+  num_affected_rows = cursor.execute(query)
+-- + Will sleep for 0.0 seconds
+-- Copying range (1000), (2000), progress: 49%
+-- + Will sleep for 0.0 seconds
+-- Copying range 100% complete. Number of rows: 2000
+-- Ghost table creation completed. Note that triggers on bench.sbtest were not removed
+</code></pre>
+
+<h1 id="参考文献">&amp;. 参考文献</h1>
+
+<p>[1] <a href="https://dbanote.github.io/2017/04/21/mysql/MySQL-DBA%E4%BB%8E%E5%B0%8F%E7%99%BD%E5%88%B0%E5%A4%A7%E7%A5%9E%E5%AE%9E%E6%88%98%E8%AF%BE%E7%A8%8B%E5%AD%A6%E4%B9%A0/13-MySQL-DBA%E4%BB%8E%E5%B0%8F%E7%99%BD%E5%88%B0%E5%A4%A7%E7%A5%9E%E5%AE%9E%E6%88%98/">MySQL DBA从小白到大神实战-13 深入分析Online DDL原理</a>
+[2] <a href="http://seanlook.com/2016/05/24/mysql-online-ddl-concept/">mysql 5.6 原生Online DDL解析</a></p>
+</blockquote>
+
+            <p class="post-info">
+                本文由
+                
+                    <a href="https://pen1120.github.io/about">
+                pen.wyp 
+                
+                </a> 创作，采用
+                <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="external nofollow">知识共享署名4.0</a>                
+                国际许可协议进行许可，转载请注明出处！<br>
+            </p>
+        </div>
+    </article>
+
+    <div id="post-bottom-bar" class="post-bottom-bar">
+        <div class="bottom-bar-inner">
+            <div class="bottom-bar-items social-share left">
+                <span class="bottom-bar-item">Share : </span>
+                <span class="bottom-bar-item bottom-bar-facebook"><a href="https://www.facebook.com/sharer/sharer.php?u=https%3a%2f%2fpen1120.github.io%2fpost%2foak%2f" target="_blank" title="Oak" rel="nofollow">Facebook</a></span>
+                <span class="bottom-bar-item bottom-bar-twitter"><a href="https://twitter.com/intent/tweet?url=https%3a%2f%2fpen1120.github.io%2fpost%2foak%2f&text=Oak" target="_blank" title="Oak" rel="nofollow">Twitter</a></span>
+                <span class="bottom-bar-item bottom-bar-weibo"><a href="http://service.weibo.com/share/share.php?url=https%3a%2f%2fpen1120.github.io%2fpost%2foak%2f&amp;title=Oak" target="_blank" title="Oak" rel="nofollow">Weibo</a></span>
+                <span class="bottom-bar-item bottom-bar-qrcode"><a href="//pan.baidu.com/share/qrcode?w=300&amp;h=300&amp;url=https%3a%2f%2fpen1120.github.io%2fpost%2foak%2f" target="_blank" rel="nofollow">QRcode</a></span>
+            </div>
+
+            <div class="bottom-bar-items right">
+                
+                <span class="bottom-bar-item"><a href="https://pen1120.github.io/post/%E8%87%AA%E5%A2%9E%E9%94%81/" title="自增锁">←</a></span> 
+                
+                <span class="bottom-bar-item"><a href="https://pen1120.github.io/post/mysql/%E5%88%9D%E5%A7%8B%E5%8C%96%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6/" title="初始化主从复制">→</a></span> 
+                <span class="bottom-bar-item"></span> <span class="bottom-bar-item"><a href="#footer">↓</a></span>
+                <span class="bottom-bar-item"><a href="#">↑</a></span>
+            </div>
+            
+        </div>
+    </div>
+
+    
+
+<div class="comment-container">
+    <div id="comments" class="clearfix">
+         
+        <div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "mjyi-io" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a> 
+        
+    </div>
+</div>
+
+ <footer id="footer" class="footer bg-white">
+    <div class="footer-social">
+        <div class="footer-container clearfix">
+            <div class="social-list">
+                
+                
+                <a class="social" target="blank" href="mailto:wu.pen1120@gmail.com">Email</a>  
+                
+                <a class="social" target="blank" href="https://github.com/pen1120">Github</a>  
+                
+                <a class="social" target="blank" href="https://pen1120.github.io/index.xml">RSS</a>  
+            </div>
+        </div>
+    </div>
+    <div class="footer-meta">
+        <div class="footer-container">
+            <div class="meta-item meta-copyright">
+                <div class="meta-copyright-info">
+                    <br>
+                    <div class="info-text">
+                        <p id="chakhsu"> </p>
+                        <p>Theme is <a href="https://github.com/mjyi/Gemini" target="_blank" rel="nofollow">Gemini</a> by Chakhsu</p>
+                        <p>Powered by <a href="https://gohugo.io/" target="_blank" rel="nofollow">Hugo</a></p>
+                        <p> &copy; 2017 <a href="https://pen1120.github.io">pen.wyp</a></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="meta-item meta-comments">
+                <h3 class="meta-title">CATEGORIES</h3>
+                <li><a href="https://pen1120.github.io/categories/mysql">Mysql</a>(3)</li>
+                <li><a href="https://pen1120.github.io/categories/ubuntu">Ubuntu</a>(1)</li>
+            </div>
+            <div class="meta-item meta-posts">
+                <h3 class="meta-title">RECENT POSTS</h3>
+                 
+                <li><a href="https://pen1120.github.io/post/ubuntu%E9%87%8D%E8%A3%85/">Ubuntu重装</a></li>
+                  
+                <li><a href="https://pen1120.github.io/post/%E8%87%AA%E5%A2%9E%E9%94%81/">自增锁</a></li>
+                  
+                <li><a href="https://pen1120.github.io/post/oak/">Oak</a></li>
+                  
+                <li><a href="https://pen1120.github.io/post/mysql/%E5%88%9D%E5%A7%8B%E5%8C%96%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6/">初始化主从复制</a></li>
+                   
+
+            </div>
+        </div>
+    </div>
+    </div>
+</footer>
+
+ 
+    <div id="directory-content" class="directory-content">
+        <div id="directory"></div>
+    </div>
+    <script>
+    var postDirectoryBuild = function() {
+        var postChildren = function children(childNodes, reg) {
+                var result = [],
+                    isReg = typeof reg === 'object',
+                    isStr = typeof reg === 'string',
+                    node, i, len;
+                for (i = 0, len = childNodes.length; i < len; i++) {
+                    node = childNodes[i];
+                    if ((node.nodeType === 1 || node.nodeType === 9) && (!reg || isReg && reg.test(node.tagName.toLowerCase()) || isStr && node.tagName.toLowerCase() === reg)) {
+                        result.push(node);
+                    }
+                }
+                return result;
+            },
+            createPostDirectory = function(article, directory, isDirNum) {
+                var contentArr = [],
+                    titleId = [],
+                    levelArr, root, level, currentList, list, li, link, i, len;
+                levelArr = (function(article, contentArr, titleId) {
+                    var titleElem = postChildren(article.childNodes, /^h\d$/),
+                        levelArr = [],
+                        lastNum = 1,
+                        lastRevNum = 1,
+                        count = 0,
+                        guid = 1,
+                        id = 'directory' + (Math.random() + '').replace(/\D/, ''),
+                        lastRevNum, num, elem;
+                    while (titleElem.length) {
+                        elem = titleElem.shift();
+                        contentArr.push(elem.innerHTML);
+                        num = +elem.tagName.match(/\d/)[0];
+                        if (num > lastNum) {
+                            levelArr.push(1);
+                            lastRevNum += 1;
+                        } else if (num === lastRevNum || num > lastRevNum && num <= lastNum) {
+                            levelArr.push(0);
+                            lastRevNum = lastRevNum;
+                        } else if (num < lastRevNum) {
+                            levelArr.push(num - lastRevNum);
+                            lastRevNum = num;
+                        }
+                        count += levelArr[levelArr.length - 1];
+                        lastNum = num;
+                        elem.id = elem.id || (id + guid++);
+                        titleId.push(elem.id);
+                    }
+                    if (count !== 0 && levelArr[0] === 1) levelArr[0] = 0;
+                    return levelArr;
+                })(article, contentArr, titleId);
+                currentList = root = document.createElement('ul');
+                dirNum = [0];
+                for (i = 0, len = levelArr.length; i < len; i++) {
+                    level = levelArr[i];
+                    if (level === 1) {
+                        list = document.createElement('ul');
+                        if (!currentList.lastElementChild) {
+                            currentList.appendChild(document.createElement('li'));
+                        }
+                        currentList.lastElementChild.appendChild(list);
+                        currentList = list;
+                        dirNum.push(0);
+                    } else if (level < 0) {
+                        level *= 2;
+                        while (level++) {
+                            if (level % 2) dirNum.pop();
+                            currentList = currentList.parentNode;
+                        }
+                    }
+                    dirNum[dirNum.length - 1]++;
+                    li = document.createElement('li');
+                    link = document.createElement('a');
+                    link.href = '#' + titleId[i];
+                    link.innerHTML = !isDirNum ? contentArr[i] : dirNum.join('.') + ' ' + contentArr[i];
+                    li.appendChild(link);
+                    currentList.appendChild(li);
+                }
+                directory.appendChild(root);
+            };
+        createPostDirectory(document.getElementById('post-content'), document.getElementById('directory'), true);
+    };
+    postDirectoryBuild();
+    </script> 
+
+
+<script src="//cdn.bootcss.com/headroom/0.9.1/headroom.min.js"></script>
+<script src="//cdn.bootcss.com/highlight.js/9.10.0/highlight.min.js"></script>
+<script src="https://pen1120.github.io/js/instantclick.min.js?v20140319"></script>
+<script src="//cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js"></script>
+<script>
+
+
+    var postDirectory = new Headroom(document.getElementById("directory-content"), {
+        tolerance: 0,
+        offset: 90,
+        classes: {
+            initial: "initial",
+            pinned: "pinned",
+            unpinned: "unpinned"
+        }
+    });
+    postDirectory.init();
+
+
+     var postSharer = new Headroom(document.getElementById("post-bottom-bar"), {
+        tolerance: 0,
+        offset: 70,
+        classes: {
+            initial: "animated",
+            pinned: "pinned",
+            unpinned: "unpinned"
+        }
+    });
+    postSharer.init();
+
+
+
+
+    var header = new Headroom(document.getElementById("header"), {
+        tolerance: 0,
+        offset: 70,
+        classes: {
+            initial: "animated",
+            pinned: "slideDown",
+            unpinned: "slideUp"
+        }
+    });
+    header.init();
+    var chakhsu = function (r) {
+        function t() {
+            return b[Math.floor(Math.random() * b.length)]
+        }
+
+        function e() {
+            return String.fromCharCode(94 * Math.random() + 33)
+        }
+
+        function n(r) {
+            for (var n = document.createDocumentFragment(), i = 0; r > i; i++) {
+                var l = document.createElement("span");
+                l.textContent = e(), l.style.color = t(), n.appendChild(l)
+            }
+            return n
+        }
+
+        function i() {
+            var t = o[c.skillI];
+            c.step ? c.step-- : (c.step = g, c.prefixP < l.length ? (c.prefixP >= 0 && (c.text += l[c.prefixP]), c.prefixP++) : "forward" === c.direction ? c.skillP < t.length ? (c.text += t[c.skillP], c.skillP++) : c.delay ? c.delay-- : (c.direction = "backward", c.delay = a) : c.skillP > 0 ? (c.text = c.text.slice(0, -1), c.skillP--) : (c.skillI = (c.skillI + 1) % o.length, c.direction = "forward")), r.textContent = c.text, r.appendChild(n(c.prefixP < l.length ? Math.min(s, s + c.prefixP) : Math.min(s, t.length - c.skillP))), setTimeout(i, d)
+        }
+        var l = "",
+            o = ["I am a DBA","Work in Guangzhou"].map(function (r) {
+                return r + "."
+            }),
+            a = 2,
+            g = 1,
+            s = 5,
+            d = 75,
+            b = ["rgb(110,64,170)", "rgb(150,61,179)", "rgb(191,60,175)", "rgb(228,65,157)", "rgb(254,75,131)", "rgb(255,94,99)", "rgb(255,120,71)", "rgb(251,150,51)", "rgb(226,183,47)", "rgb(198,214,60)", "rgb(175,240,91)", "rgb(127,246,88)", "rgb(82,246,103)", "rgb(48,239,130)", "rgb(29,223,163)", "rgb(26,199,194)", "rgb(35,171,216)", "rgb(54,140,225)", "rgb(76,110,219)", "rgb(96,84,200)"],
+            c = {
+                text: "",
+                prefixP: -s,
+                skillI: 0,
+                skillP: 0,
+                direction: "forward",
+                delay: a,
+                step: g
+            };
+        i()
+    };
+    chakhsu(document.getElementById('chakhsu'));
+    if ('addEventListener' in document) {
+        document.addEventListener('DOMContentLoaded', function () {
+            FastClick.attach(document.body);
+        }, false);
+    }
+
+</script>
+<script type="text/x-mathjax-config"> MathJax.Hub.Config({ showProcessingMessages: false, messageStyle: "none", extensions: ["tex2jax.js"], jax: ["input/TeX",
+    "output/HTML-CSS"], tex2jax: { inlineMath: [ ['$','$'], ["\\(","\\)"] ], displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+    skipTags: ['script', 'noscript', 'style', 'textarea', 'pre','code','a'], ignoreClass:"comment-content" }, "HTML-CSS":
+    { availableFonts: ["STIX","TeX"], showMathMenu: false } }); MathJax.Hub.Queue(["Typeset",MathJax.Hub]); </script>
+<script src="//cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+<script data-no-instant>
+    InstantClick.on('change', function (isInitialLoad) {
+        var blocks = document.querySelectorAll('pre code');
+        for (var i = 0; i < blocks.length; i++) {
+            hljs.highlightBlock(blocks[i]);
+        }
+        if (isInitialLoad === false) {
+            if (typeof ga !== 'undefined') ga('send', 'pageview', location.pathname + location.search);
+            if (typeof MathJax !== 'undefined') {
+                MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+            }
+        }
+    });
+    InstantClick.init('mousedown');
+
+</script>
+
+
+</body>
+
+</html>

@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Tech on Zen</title>
+    <link>https://pen1120.github.io/tags/tech/</link>
+    <description>Recent content in Tech on Zen</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Fri, 26 Jan 2018 21:12:18 +0800</lastBuildDate>
+    
+	<atom:link href="https://pen1120.github.io/tags/tech/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>自增锁</title>
+      <link>https://pen1120.github.io/post/%E8%87%AA%E5%A2%9E%E9%94%81/</link>
+      <pubDate>Fri, 26 Jan 2018 21:12:18 +0800</pubDate>
+      
+      <guid>https://pen1120.github.io/post/%E8%87%AA%E5%A2%9E%E9%94%81/</guid>
+      <description>#1. 背景 在MySQL的表设计中经常使用自增字段作为表主键，其中的优势在于：
+ 自增字段对业务透明，后期不会存在更新主键等操作，在多数据中心同步中避免了很多问题； InnoDB使用了B+Tree作为存储的数据结构，数据按照主键组织存储，写入时保证了性能，避免了InnoDB Page分裂，并且提高了空间利用率； 自增字段只占4或8个字节，一个page内存可以存储更多的数据，buffer pool缓存命中率更高。 #TODO buffer pool里放的难道是指针吗？ 为什么上一句会这么说。  但是自增字段作为主键也会带来一些问题： - AUTO_INCREMENT热点争用； - replace逻辑可能导致准备AUTO_INCREMENT不一致，在主备切换后会出现duplicate key问题 #2. 理论基础
+本节描述了用于生成自增值的AUTO_INCREMENT锁模式的行为，以及这些模式是如何影响复制的。数据库启动时使用innodb_autoinc_lock_mode的参数来配置AUTO_INCREMENT的锁模式。 ##2.1 锁的解释 根据锁持有的时间粒度，分为： 1. 内存级别：类似mutex，很快释放 2. 语句级别：statement结束，释放 3. 事务级别：transaction提交或者回滚才释放 4. 会话级别：session级别，连接断开才释放 ##2.2 术语描述
+ &amp;ldquo;INSERT-like&amp;rdquo; 在表中生成新行的语句，包括了INSERT,INSERT...SELECT,REPLACE,REPLACE...SELECT和LOAD DATA，这种语句包括了&amp;rdquo;简单插入&amp;rdquo;，&amp;rdquo;批量插入&amp;rdquo;和&amp;rdquo;混合插入&amp;rdquo;。 &amp;ldquo;简单插入(Simple Inserts)&amp;rdquo; 可以提前确定要插入的行数的语句。这指的是没有嵌套子查询的单行和多行INSERT和REPLACE语句，但是不包括INSERT ... ON DUPLICATE KEY UPDATE。 &amp;ldquo;批量插入(Bulk Inserts)&amp;rdquo; 无法提前确定要插入的行数的语句。这指的是INSERT...SELECT,REPLACE...SELECT,和LOAD DATA语句，不包括简单的INSERT。每一行在执行时，InnoDB会一次性为AUTO_INCREMENT列分配一个新值。 &amp;ldquo;混合插入(Mixed-mode Inserts)&amp;rdquo; 这些属于&amp;rdquo;简单插入&amp;rdquo;的语句，但是它们指定了一些新行（但不是全部）的自增项，例如： INSERT INTO t1 (c1,c2) VALUES (1,&#39;a&#39;), (NULL,&#39;b&#39;), (5,&#39;c&#39;), (NULL,&#39;d&#39;); 另一种&amp;rdquo;混合插入&amp;rdquo;指的是INSERT ... ON DUPLICATE KEY UPDATE，最糟糕的情况是INSERT后面跟着一个UPDATE，其中AUTO_INCREMENT列的值可能会在更新阶段使用。  ##2.</description>
+    </item>
+    
+    <item>
+      <title>Oak</title>
+      <link>https://pen1120.github.io/post/oak/</link>
+      <pubDate>Fri, 26 Jan 2018 21:09:18 +0800</pubDate>
+      
+      <guid>https://pen1120.github.io/post/oak/</guid>
+      <description>1. 安装  略 https://github.com/nuodb/sysbench
+2. 测试 2.1 准备测试环境 sysbench --test=/usr/share/doc/sysbench/tests/db/insert.lua --oltp-table-size=100000 --mysql-table-engine=innodb --db-driver=mysql --mysql-user=dba --mysql-password=xxxx --mysql-port=9527 --mysql-host=localhost --mysql-db=bench --mysql-socket=/tmp/mysql9527.sock --events=0 --time=60 --oltp-tables-count=2 --report-interval=10 --threads=2 prepare sysbench --test=/usr/share/doc/sysbench/tests/db/insert.lua --oltp-table-size=100000 --mysql-table-engine=innodb --db-driver=mysql --mysql-user=dba --mysql-password=xxxx --mysql-port=9527 --mysql-host=localhost --mysql-db=bench --mysql-socket=/tmp/mysql9527.sock --events=0 --time=60 --oltp-tables-count=2 --report-interval=10 --threads=2 run  2.2 开始DDL python /apps/sh/tool/openark-kit/scripts/oak-online-alter-table -u dba --ask-pass -S /tmp/mysql9527.sock -d bench -t sbtest -g new_sbtest -a &amp;quot;add last_update_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,add key last_update_time(last_update_time)&amp;quot; --sleep=300 --skip-delete-pass -- Connecting to MySQL Password: #自然是输入密码 -- Table bench.</description>
+    </item>
+    
+    <item>
+      <title>初始化主从复制</title>
+      <link>https://pen1120.github.io/post/mysql/%E5%88%9D%E5%A7%8B%E5%8C%96%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6/</link>
+      <pubDate>Wed, 24 Jan 2018 21:12:18 +0800</pubDate>
+      
+      <guid>https://pen1120.github.io/post/mysql/%E5%88%9D%E5%A7%8B%E5%8C%96%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6/</guid>
+      <description>搭建 复制数据库 #保证主从库配置基本一致，并且拥有各自的server-id [apps@master apps]$ cat /apps/conf/mysql/mysql57_9527.cnf | egrep &#39;^server-id&#39; server-id=2003433547 [apps@slave apps]$ cat /apps/conf/mysql/mysql57_9527.cnf | egrep &#39;^server-id&#39; server-id=2003433548  #新建复制账号 master&amp;gt; grant replication on *.* to &#39;repl&#39;@&#39;targetip&#39; identified by &#39;repl&#39;; Query OK, 0 rows affected (0.02 sec) master&amp;gt; flush privileges; Query OK, 0 rows affected (0.02 sec) #如果主库有数据，记录当前日志文件的位置，再导出数据并导入到从库中，保持两端数据一致 master&amp;gt; show master status; +------------------+----------+--------------+------------------+-------------------------------------------+ | File | Position | Binlog_Do_DB | Binlog_Ignore_DB | Executed_Gtid_Set | +------------------+----------+--------------+------------------+-------------------------------------------+ | mysql-bin.000001 | 53895724 | | | acaa7c2b-7b51-11e7-af97-fa163eb9fda0:1-35 | +------------------+----------+--------------+------------------+-------------------------------------------+ 1 row in set (0.</description>
+    </item>
+    
+  </channel>
+</rss>

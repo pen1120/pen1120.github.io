@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="x-dns-prefetch-control" content="on">
+    <link rel="dns-prefetch" href="https://o243f9mnq.qnssl.com/" />
+    <link rel="dns-prefetch" href="//cdn.bootcss.com" />
+    <link rel="dns-prefetch" href="//secure.gravatar.com" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge, chrome=1">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta http-equiv="Cache-Control" content="no-transform" />
+    <meta http-equiv="Cache-Control" content="no-siteapp" />
+    
+    <link rel="shortcut icon" href="https://pen1120.github.io/images/favicon.png">
+    <link rel="apple-touch-icon" href="https://pen1120.github.io/images/apple-touch-icon.png">
+    <title>
+        
+        初始化主从复制 - Zen
+        
+    </title>
+    <meta name="keywords" content=" " />
+    <meta name="description" content=" " />
+    <link href="//cdn.bootcss.com/highlight.js/9.10.0/styles/xcode.min.css" rel="stylesheet">
+    <link href="https://pen1120.github.io/css/style.min.css?20170331" rel="stylesheet">
+    
+</head>
+
+
+<body class="bg-white" gtools_scp_screen_capture_injected="true">
+    
+    <header id="header" class="header bg-white">
+        <div class="navbar-container">
+            <a href="https://pen1120.github.io" class="navbar-logo" style="color: #5f5f5f">Zen</a>
+            <div class="navbar-menu">
+            
+                <a href="https://pen1120.github.io/post/">文章</a>  
+            
+                <a href="https://pen1120.github.io/tags/">标签</a>  
+            
+                <a href="https://pen1120.github.io/about">关于</a>  
+            
+            </div>
+            
+            <div class="navbar-mobile-menu" onclick=""> 
+                <span class="icon-menu cross"><span class="middle"></span></span>
+                <ul>
+                
+                <li><a href="https://pen1120.github.io/post/">文章</a></li> 
+                
+                <li><a href="https://pen1120.github.io/tags/">标签</a></li> 
+                
+                <li><a href="https://pen1120.github.io/about">关于</a></li> 
+                
+                </ul>
+            </div>
+        </div>
+    </header>
+    <article class="main-content page-page">
+        <div class="post-header">
+            <h1 class="post-title" itemprop="name headline">
+                初始化主从复制
+            </h1>
+            <div class="post-data">
+                Published on Jan 24, 2018 ,6 min reading time
+            </div>
+        </div>
+        <div id="post-content" class="post-content">
+            
+<p class="post-tags"> 
+	
+	<a href="https://pen1120.github.io/tags/mysql">MySQL</a>
+	
+	<a href="https://pen1120.github.io/tags/tech">tech</a>
+	
+</p>
+
+ 
+
+<h1 id="搭建">搭建</h1>
+
+<h2 id="复制数据库">复制数据库</h2>
+
+<pre><code>#保证主从库配置基本一致，并且拥有各自的server-id
+[apps@master apps]$ cat /apps/conf/mysql/mysql57_9527.cnf | egrep '^server-id'
+server-id=2003433547
+[apps@slave apps]$ cat /apps/conf/mysql/mysql57_9527.cnf | egrep '^server-id'
+server-id=2003433548
+</code></pre>
+
+<pre><code class="language-mysql">#新建复制账号
+master&gt; grant replication on *.* to 'repl'@'targetip' identified by 'repl';
+Query OK, 0 rows affected (0.02 sec)
+master&gt; flush privileges;
+Query OK, 0 rows affected (0.02 sec)
+
+#如果主库有数据，记录当前日志文件的位置，再导出数据并导入到从库中，保持两端数据一致
+master&gt; show master status;
++------------------+----------+--------------+------------------+-------------------------------------------+
+| File             | Position | Binlog_Do_DB | Binlog_Ignore_DB | Executed_Gtid_Set                         |
++------------------+----------+--------------+------------------+-------------------------------------------+
+| mysql-bin.000001 | 53895724 |              |                  | acaa7c2b-7b51-11e7-af97-fa163eb9fda0:1-35 |
++------------------+----------+--------------+------------------+-------------------------------------------+
+1 row in set (0.00 sec)
+</code></pre>
+
+<pre><code>#导出数据
+[apps@master apps]$/apps/svr/mysql/bin/mysqldump -udba -pxxxxx --all-databases --socket=/tmp/mysql9527.sock --set-gtid-purged=OFF &gt; /tmp/all.sql
+#复制数据
+[apps@master apps]$scp /tmp/all.sql root@targetip:/tmp/all.sql
+#载入数据
+[apps@slave apps]$/apps/svr/mysql/bin/mysql -udba -pxxxxx --socket=/tmp/mysql9527.sock &lt; /tmp/all.sql
+</code></pre>
+
+<h2 id="建立主从库连接">建立主从库连接</h2>
+
+<pre><code>#要注意到这里的master_log_pos就是之前我们在主库中查看的日志的位置，该位置的记录截止至我们导出数据
+slave&gt; change master to master_host='master ip',master_user='dba',master_password='xxxxx',master_port=9527,master_log_file='mysql-bin.000001',master_log_pos=53895724;
+slave&gt; show slave status \G;
+*************************** 1. row ***************************
+               Slave_IO_State: Waiting for master to send event
+                  Master_Host: 10.199.203.210
+                  Master_User: repl
+                  Master_Port: 9527
+                Connect_Retry: 60
+              Master_Log_File: mysql-bin.000001
+          Read_Master_Log_Pos: 53895881
+               Relay_Log_File: relay-bin.000005
+                Relay_Log_Pos: 43401851
+        Relay_Master_Log_File: mysql-bin.000001
+             Slave_IO_Running: Yes
+            Slave_SQL_Running: Yes
+              Replicate_Do_DB:
+          Replicate_Ignore_DB:
+           Replicate_Do_Table:
+       Replicate_Ignore_Table:
+      Replicate_Wild_Do_Table:
+  Replicate_Wild_Ignore_Table:
+                   Last_Errno: 0
+                   Last_Error:
+                 Skip_Counter: 0
+          Exec_Master_Log_Pos: 53895881
+              Relay_Log_Space: 53894345
+              Until_Condition: None
+               Until_Log_File:
+                Until_Log_Pos: 0
+           Master_SSL_Allowed: No
+           Master_SSL_CA_File:
+           Master_SSL_CA_Path:
+              Master_SSL_Cert:
+            Master_SSL_Cipher:
+               Master_SSL_Key:
+        Seconds_Behind_Master: 0
+Master_SSL_Verify_Server_Cert: No
+                Last_IO_Errno: 0
+                Last_IO_Error:
+               Last_SQL_Errno: 0
+               Last_SQL_Error:
+  Replicate_Ignore_Server_Ids:
+             Master_Server_Id: 2003433547
+                  Master_UUID: acaa7c2b-7b51-11e7-af97-fa163eb9fda0
+             Master_Info_File: mysql.slave_master_info
+                    SQL_Delay: 0
+          SQL_Remaining_Delay: NULL
+      Slave_SQL_Running_State: Slave has read all relay log; waiting for more updates
+           Master_Retry_Count: 86400
+                  Master_Bind:
+      Last_IO_Error_Timestamp:
+     Last_SQL_Error_Timestamp:
+               Master_SSL_Crl:
+           Master_SSL_Crlpath:
+           Retrieved_Gtid_Set: acaa7c2b-7b51-11e7-af97-fa163eb9fda0:10-36
+            Executed_Gtid_Set: ab63bdb6-7b4e-11e7-bde5-fa163e5b5b13:1-271,
+acaa7c2b-7b51-11e7-af97-fa163eb9fda0:1-7:10-36
+                Auto_Position: 0
+         Replicate_Rewrite_DB:
+                 Channel_Name:
+           Master_TLS_Version:
+1 row in set (0.00 sec)
+</code></pre>
+
+<p>新建从库时，我们要关注的信息有几个，<code>Slave_IO_Running</code>，<code>Slave_SQL_Running</code>，<code>Exec_Master_Log_Pos</code>和<code>Read_Master_Log_Pos</code>。通过这四个值判断从库的IO线程和SQL执行线程有没有正常启动，以及对应的日志是否执行完毕。</p>
+
+<h2 id="错误示例">错误示例</h2>
+
+<h3 id="导入导出出错">导入导出出错</h3>
+
+<p>必须严格依照错误提示进行操作。
+例如数据库开启了gtid但是导出数据时没有添加set-gtid-purged=OFF语句，将会出现以下提示：</p>
+
+<pre><code>[apps@master apps]$/apps/svr/mysql/bin/mysqldump -udba -pxxxxx --all-databases --socket=/tmp/mysql9527.sock &gt; /tmp/all.sql
+Warning: A partial dump from a server that has GTIDs will by default include the GTIDs of all transactions, even those that changed suppressed parts of the database. If you don't want to restore GTIDs, pass --set-gtid-purged=OFF. To make a complete dump, pass --all-databases --triggers --routines --events.
+</code></pre>
+
+<p>这个时候虽然可以正常导出sql文件，但是由于gtid的存在，该文件可能无法正常导入从库。</p>
+
+<pre><code>[apps@slave apps]$/apps/svr/mysql/bin/mysql -udba -plocaldba --socket=/tmp/mysql9527.sock &lt; /tmp/all.sql
+mysql: [Warning] Using a password on the command line interface can be insecure.
+ERROR 1840 (HY000) at line 24: @@GLOBAL.GTID_PURGED can only be set when @@GLOBAL.GTID_EXECUTED is empty.
+
+</code></pre>
+
+<h3 id="从库异常">从库异常</h3>
+
+<h4 id="slave-io-running-off">Slave_IO_Running=OFF</h4>
+
+<p>可能原因有三：
+- 网络故障，导致无法连接主库
+- 配置文件有误，无法正常初始化IO进程
+- 权限不足，复制进程必须拥有基础的replication slave和file权限</p>
+
+<p>当问题修复以后，在从库上执行：</p>
+
+<pre><code>slave&gt;stop slave;
+slave&gt;reset slave;
+slave&gt;start slave;
+</code></pre>
+
+<h4 id="slave-io-running-off-1">Slave_IO_Running=OFF</h4>
+
+<p>可能原因有二：
+- 应用在从库上执行了写操作，导致数据不一致，继而终止
+- 从库机器重启，事务回滚导致</p>
+
+<pre><code>#解决方法1
+slave&gt; slave stop;
+slave&gt; set GLOBAL SQL_SLAVE_SKIP_COUNTER=1;
+slave&gt; slave start;
+
+#解决方法2
+slave&gt; slave stop;
+#到主库上查看主机状态，记录File和Position
+master&gt; show master status;
++------------------+----------+--------------+------------------+-------------------------------------------+
+| File             | Position | Binlog_Do_DB | Binlog_Ignore_DB | Executed_Gtid_Set                         |
++------------------+----------+--------------+------------------+-------------------------------------------+
+| mysql-bin.000001 | 53895724 |              |                  | acaa7c2b-7b51-11e7-af97-fa163eb9fda0:1-35 |
++------------------+----------+--------------+------------------+-------------------------------------------+
+1 row in set (0.00 sec)
+#到从库上执行手动同步：
+change master to master_host='master ip',master_user='dba',master_password='xxxxx',master_port=9527,master_log_file='mysql-bin.000001',master_log_pos=53895724;
+slave&gt; start slave;
+</code></pre>
+
+<h1 id="在已有主从库上添加从库">在已有主从库上添加从库</h1>
+
+<h2 id="关闭已经存在的从库">关闭已经存在的从库</h2>
+
+<pre><code>/apps/svr/mysql/bin/mysqladmin -udba -pxxxxx shutdown -S /tmp/mysql9527.sock
+</code></pre>
+
+<h2 id="复制从库数据目录下所有文件到新从库">复制从库数据目录下所有文件到新从库</h2>
+
+<pre><code>rsync -avzP /apps/dbdat/m9527/ root@targetip:/apps/dbdat/m9527/
+</code></pre>
+
+<h2 id="检查relay-log配置">检查relay-log配置</h2>
+
+<pre><code>cnf文件中的relay-log必须配置，不然可能导致新从库无法正常打开relay log
+</code></pre>
+
+<h2 id="复制">复制</h2>
+
+<pre><code>#如果新从库还没有关闭，则执行stop slave
+
+#复制所有relay log index文件到新从库中
+
+#复制master info和relay log info的数据库文件frm和ibd到新从库目录
+
+#其实上面两步都已经在目录中包含了，可以不做
+</code></pre>
+
+<h2 id="修改id或uuid">修改id或uuid</h2>
+
+<pre><code>#如果server-id一样，则修改配置文件，重启从库
+vi /apps/conf/mysql/mysql57_data9527.cnf
+
+#如果server-id一样，则关闭从库，修改auto.cnf文件，重启从库
+vi /apps/dbdat/m9527/auto.cnf
+</code></pre>
+
+<h1 id="备份">备份</h1>
+
+<h2 id="xtrabackup">xtrabackup</h2>
+
+<p>xtrabackup：是用于热备份innodb, xtradb表中数据的工具，不能备份其他类型的表，也不能备份数据表结构；
+innobackupex：是将xtrabackup进行封装的perl脚本，提供了备份myisam表的能力。</p>
+
+<h3 id="安装">安装</h3>
+
+<pre><code>安装方法1
+</code></pre>
+
+<pre><code>#下载
+http://www.percona.com/software/percona-xtrabackup
+#安装依赖
+sudo yum install -y perl-DBD-MySQL perl-DBI  perl-Time-HiRes libaio*
+#安装
+sudo rpm -ivh percona-xtrabackup-24-2.4.8-1.el6.x86_64.rpm
+#缺少libev.so.4
+http://www.cnblogs.com/kerrycode/p/5308719.html
+</code></pre>
+
+<pre><code>安装方法2
+</code></pre>
+
+<pre><code>sudo rpm -Uhv http://www.percona.com/downloads/percona-release/percona-release-0.0-1.x86_64.rpm
+sudo yum -y install percona-xtrabackup
+</code></pre>
+
+<h3 id="清除从库同时停止复制">清除从库同时停止复制</h3>
+
+<pre><code>slave&gt; stop slave;         #停止同步
+slave&gt; reset slave;        #清除主从连接信息
+slave&gt; show slave status\G;   #再查看从状态，可以看到IO和SQL线程都为NO
+slave&gt; drop database xxxxx;   #删除xxxx库
+</code></pre>
+
+<h3 id="备份-1">备份</h3>
+
+<pre><code>#使用xtrabackup进行备份
+[apps@master ~]$ innobackupex --defaults-file=/apps/conf/mysql/mysql57_9527.cnf -udba -pxxxxx --socket=/tmp/mysql9527.sock --basedir=/apps/svr/mysql ./
+170810 15:09:32 innobackupex: Starting the backup operation
+
+IMPORTANT: Please check that the backup run completes successfully.
+           At the end of a successful backup run innobackupex
+           prints &quot;completed OK!&quot;.
+
+170810 15:09:32  version_check Connecting to MySQL server with DSN 'dbi:mysql:;mysql_read_default_group=xtrabackup;mysql_socket=/tmp/mysql9527.sock' as 'dba'  (using password: YES).
+170810 15:09:32  version_check Connected to MySQL server
+170810 15:09:32  version_check Executing a version check against the server...
+170810 15:09:35  version_check Done.
+170810 15:09:35 Connecting to MySQL server host: localhost, user: dba, password: set, port: not set, socket: /tmp/mysql9527.sock
+Using server version 5.7.17-log
+innobackupex version 2.4.8 based on MySQL server 5.7.13 Linux (x86_64) (revision id: 97330f7)
+xtrabackup: uses posix_fadvise().
+xtrabackup: cd to /apps/dbdat/mysql57_data9527
+xtrabackup: open files limit requested 0, set to 65535
+xtrabackup: using the following InnoDB configuration:
+xtrabackup:   innodb_data_home_dir = /apps/dbdat/mysql57_data9527
+xtrabackup:   innodb_data_file_path = ibdata1:1000M:autoextend
+xtrabackup:   innodb_log_group_home_dir = /apps/dbdat/mysql57_data9527
+xtrabackup:   innodb_log_files_in_group = 4
+xtrabackup:   innodb_log_file_size = 1048576000
+2017-08-10 15:09:35 0x7ffe53f9d7e0 InnoDB: Using Linux native AIO
+xtrabackup: using O_DIRECT
+InnoDB: Number of pools: 1
+170810 15:09:36 &gt;&gt; log scanned up to (1440172158)
+xtrabackup: Generating a list of tablespaces
+InnoDB: Allocated tablespace ID 21 for sys/sys_config, old maximum was 0
+170810 15:09:36 [01] Copying /apps/dbdat/mysql57_data9527/ibdata1 to /home/apps/2017-08-10_15-09-32/ibdata1
+170810 15:09:37 &gt;&gt; log scanned up to (1440172158)
+170810 15:09:38 &gt;&gt; log scanned up to (1440172158)
+170810 15:09:39 &gt;&gt; log scanned up to (1440172158)
+......
+170810 15:10:01 [01] Copying ./mysql/help_topic.frm to /home/apps/2017-08-10_15-09-32/mysql/help_topic.frm
+170810 15:10:01 [01]        ...done
+170810 15:10:01 [01] Copying ./mysql/time_zone.frm to /home/apps/2017-08-10_15-09-32/mysql/time_zone.frm
+170810 15:10:01 [01]        ...done
+170810 15:10:01 Finished backing up non-InnoDB tables and files
+170810 15:10:01 [00] Writing /home/apps/2017-08-10_15-09-32/xtrabackup_binlog_info
+170810 15:10:01 [00]        ...done
+170810 15:10:01 Executing FLUSH NO_WRITE_TO_BINLOG ENGINE LOGS...
+xtrabackup: The latest check point (for incremental): '1440172149'
+xtrabackup: Stopping log copying thread.
+.170810 15:10:01 &gt;&gt; log scanned up to (1440172158)
+170810 15:10:01 Executing UNLOCK TABLES
+170810 15:10:01 All tables unlocked
+170810 15:10:01 [00] Copying ib_buffer_pool to /home/apps/2017-08-10_15-09-32/ib_buffer_pool
+170810 15:10:01 [00]        ...done
+170810 15:10:01 Backup created in directory '/home/apps/2017-08-10_15-09-32/'
+MySQL binlog position: filename 'mysql-bin.000001', position '53895881', GTID of the last change 'acaa7c2b-7b51-11e7-af97-fa163eb9fda0:1-36'
+170810 15:10:01 [00] Writing /home/apps/2017-08-10_15-09-32/backup-my.cnf
+170810 15:10:01 [00]        ...done
+170810 15:10:01 [00] Writing /home/apps/2017-08-10_15-09-32/xtrabackup_info
+170810 15:10:01 [00]        ...done
+xtrabackup: Transaction log of lsn (1440172149) to (1440172158) was copied.
+170810 15:10:02 completed OK!
+</code></pre>
+
+<h3 id="更换数据文件">更换数据文件</h3>
+
+<pre><code>#确认成功以后，停止从库MySQL实例
+[apps@slave apps]$ ps aux | grep 9527 | awk '{print $2}' |sudo xargs kill -9
+
+#删除数据目录
+[apps@slave apps]$ sudo rm -rf /apps/dbdat/mysql57_data9527
+
+#拷贝目录
+[apps@master apps]$ rsync -avzP /home/apps/2017-08-10_15-09-32 root@masterip:/apps/dbdat/mysql57_data9527
+
+#更改数据目录权限组
+[apps@slave apps]$ sudo chown -R apps:apps /apps/dbdat/mysql57_data9527
+
+#重新启动MySQL实例
+[apps@slave apps]$ /apps/svr/mysql/bin/mysqld_safe --defaults-file=/apps/conf/mysql/mysql57_9527.cnf --ledir=/apps/svr/mysql/bin
+[aoos@master apps]$rsync -avzP /apps/dbdat/mysql57_data9527/log/ root@10.199.203.211:/apps/dbdat/mysql57_data9527/log/
+
+#这里要补充说明的一点由于我使用的配置文件里面将log放在了mysql的数据文件夹里面，但是这个log目录对于xtrabackup而言是透明的，也就是说没有备份。所以重启实例之前需要将主库的二进制文件也一并拷贝到从库的对应目录下。
+[apps@master apps]$ cat /apps/conf/mysql/mysql57_9527.cnf | grep log-bin
+log-bin=/apps/dbdat/mysql57_data9527/log/mysql-bin
+log-bin-index=/apps/dbdat/mysql57_data9527/log/mysql-bin.index
+log-bin-trust-function-creators
+</code></pre>
+
+<h3 id="手动开启同步">手动开启同步</h3>
+
+<pre><code>#从备份目录中xtrabackup_info文件获取到binlog和postiion
+[apps@slave apps]$ cat /apps/dbdat/mysql57_data9527/xtrabackup_info
+uuid = ed539250-7d9a-11e7-a585-fa163eb9fda0
+name =
+tool_name = innobackupex
+tool_command = --defaults-file=/apps/conf/mysql/mysql57_9527.cnf -udba -plocaldba --socket=/tmp/mysql9527.sock --basedir=/apps/svr/mysql ./
+tool_version = 2.4.8
+ibbackup_version = 2.4.8
+server_version = 5.7.17-log
+start_time = 2017-08-10 15:09:35
+end_time = 2017-08-10 15:10:01
+lock_time = 0
+binlog_pos = filename 'mysql-bin.000001', position '53895881', GTID of the last change 'acaa7c2b-7b51-11e7-af97-fa163eb9fda0:1-36'
+innodb_from_lsn = 0
+innodb_to_lsn = 1440172149
+partial = N
+incremental = N
+format = file
+compact = N
+compressed = N
+encrypted = N
+
+#从库设置日志同步点，并启动同步
+slave&gt; change master to master_host='10.199.203.210',master_user='dba',master_password='xxxxx',master_port=9527,master_log_file='mysql-bin.000001',master_log_pos=53895881;
+slave&gt; start slave;
+slave&gt; show slave status \G;
+mysql&gt; show slave status \G;
+*************************** 1. row ***************************
+               Slave_IO_State: Waiting for master to send event
+                  Master_Host: 10.199.203.210
+                  Master_User: dba
+                  Master_Port: 9527
+                Connect_Retry: 60
+              Master_Log_File: mysql-bin.000001
+          Read_Master_Log_Pos: 53895881
+               Relay_Log_File: relay-bin.000002
+                Relay_Log_Pos: 320
+        Relay_Master_Log_File: mysql-bin.000001
+             Slave_IO_Running: Yes
+            Slave_SQL_Running: Yes
+              Replicate_Do_DB:
+          Replicate_Ignore_DB:
+           Replicate_Do_Table:
+       Replicate_Ignore_Table:
+      Replicate_Wild_Do_Table:
+  Replicate_Wild_Ignore_Table:
+                   Last_Errno: 0
+                   Last_Error:
+                 Skip_Counter: 0
+          Exec_Master_Log_Pos: 53895881
+              Relay_Log_Space: 521
+              Until_Condition: None
+               Until_Log_File:
+                Until_Log_Pos: 0
+           Master_SSL_Allowed: No
+           Master_SSL_CA_File:
+           Master_SSL_CA_Path:
+              Master_SSL_Cert:
+            Master_SSL_Cipher:
+               Master_SSL_Key:
+        Seconds_Behind_Master: 0
+Master_SSL_Verify_Server_Cert: No
+                Last_IO_Errno: 0
+                Last_IO_Error:
+               Last_SQL_Errno: 0
+               Last_SQL_Error:
+  Replicate_Ignore_Server_Ids:
+             Master_Server_Id: 2003433547
+                  Master_UUID: acaa7c2b-7b51-11e7-af97-fa163eb9fda0
+             Master_Info_File: mysql.slave_master_info
+                    SQL_Delay: 0
+          SQL_Remaining_Delay: NULL
+      Slave_SQL_Running_State: Slave has read all relay log; waiting for more updates
+           Master_Retry_Count: 86400
+                  Master_Bind:
+      Last_IO_Error_Timestamp:
+     Last_SQL_Error_Timestamp:
+               Master_SSL_Crl:
+           Master_SSL_Crlpath:
+           Retrieved_Gtid_Set:
+            Executed_Gtid_Set: acaa7c2b-7b51-11e7-af97-fa163eb9fda0:1-36
+                Auto_Position: 0
+         Replicate_Rewrite_DB:
+                 Channel_Name:
+           Master_TLS_Version:
+1 row in set (0.00 sec)
+
+#成功！
+</code></pre>
+
+<h2 id="mysqldump">mysqldump</h2>
+
+<blockquote>
+<p>请看本文1.1</p>
+
+<h1 id="总结">总结</h1>
+
+<p>其实主从的模型也是简单，在两端数据基本一致的情况下，判断二进制文件的名字以及对应的偏移量，适时进行重新适配。</p>
+</blockquote>
+
+<h1 id="参考文献">参考文献</h1>
+
+<p>[1] <a href="http://www.jb51.net/article/74337.htm">通过两种方式增加从库——不停止mysql服务</a></p>
+
+<p>[2] <a href="http://blog.jobbole.com/100393/">MySQL 复制介绍及搭建</a></p>
+
+<p>[3] <a href="http://www.toxingwang.com/database/mysql/1539.html">使用xtrabackup进行MySQL数据库备份</a></p>
+
+            <p class="post-info">
+                本文由
+                
+                    <a href="https://pen1120.github.io/about">
+                pen.wyp 
+                
+                </a> 创作，采用
+                <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="external nofollow">知识共享署名4.0</a>                
+                国际许可协议进行许可，转载请注明出处！<br>
+            </p>
+        </div>
+    </article>
+
+    <div id="post-bottom-bar" class="post-bottom-bar">
+        <div class="bottom-bar-inner">
+            <div class="bottom-bar-items social-share left">
+                <span class="bottom-bar-item">Share : </span>
+                <span class="bottom-bar-item bottom-bar-facebook"><a href="https://www.facebook.com/sharer/sharer.php?u=https%3a%2f%2fpen1120.github.io%2fpost%2fmysql%2f%25E5%2588%259D%25E5%25A7%258B%25E5%258C%2596%25E4%25B8%25BB%25E4%25BB%258E%25E5%25A4%258D%25E5%2588%25B6%2f" target="_blank" title="初始化主从复制" rel="nofollow">Facebook</a></span>
+                <span class="bottom-bar-item bottom-bar-twitter"><a href="https://twitter.com/intent/tweet?url=https%3a%2f%2fpen1120.github.io%2fpost%2fmysql%2f%25E5%2588%259D%25E5%25A7%258B%25E5%258C%2596%25E4%25B8%25BB%25E4%25BB%258E%25E5%25A4%258D%25E5%2588%25B6%2f&text=%e5%88%9d%e5%a7%8b%e5%8c%96%e4%b8%bb%e4%bb%8e%e5%a4%8d%e5%88%b6" target="_blank" title="初始化主从复制" rel="nofollow">Twitter</a></span>
+                <span class="bottom-bar-item bottom-bar-weibo"><a href="http://service.weibo.com/share/share.php?url=https%3a%2f%2fpen1120.github.io%2fpost%2fmysql%2f%25E5%2588%259D%25E5%25A7%258B%25E5%258C%2596%25E4%25B8%25BB%25E4%25BB%258E%25E5%25A4%258D%25E5%2588%25B6%2f&amp;title=%e5%88%9d%e5%a7%8b%e5%8c%96%e4%b8%bb%e4%bb%8e%e5%a4%8d%e5%88%b6" target="_blank" title="初始化主从复制" rel="nofollow">Weibo</a></span>
+                <span class="bottom-bar-item bottom-bar-qrcode"><a href="//pan.baidu.com/share/qrcode?w=300&amp;h=300&amp;url=https%3a%2f%2fpen1120.github.io%2fpost%2fmysql%2f%25E5%2588%259D%25E5%25A7%258B%25E5%258C%2596%25E4%25B8%25BB%25E4%25BB%258E%25E5%25A4%258D%25E5%2588%25B6%2f" target="_blank" rel="nofollow">QRcode</a></span>
+            </div>
+
+            <div class="bottom-bar-items right">
+                
+                <span class="bottom-bar-item"><a href="https://pen1120.github.io/post/oak/" title="Oak">←</a></span> 
+                
+                <span class="bottom-bar-item"></span> <span class="bottom-bar-item"><a href="#footer">↓</a></span>
+                <span class="bottom-bar-item"><a href="#">↑</a></span>
+            </div>
+            
+        </div>
+    </div>
+
+    
+
+<div class="comment-container">
+    <div id="comments" class="clearfix">
+         
+        <div id="disqus_thread"></div>
+<script>
+    var disqus_config = function () {
+    
+    
+    
+    };
+    (function() {
+        if (["localhost", "127.0.0.1"].indexOf(window.location.hostname) != -1) {
+            document.getElementById('disqus_thread').innerHTML = 'Disqus comments not available by default when the website is previewed locally.';
+            return;
+        }
+        var d = document, s = d.createElement('script'); s.async = true;
+        s.src = '//' + "mjyi-io" + '.disqus.com/embed.js';
+        s.setAttribute('data-timestamp', +new Date());
+        (d.head || d.body).appendChild(s);
+    })();
+</script>
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<a href="https://disqus.com" class="dsq-brlink">comments powered by <span class="logo-disqus">Disqus</span></a> 
+        
+    </div>
+</div>
+
+ <footer id="footer" class="footer bg-white">
+    <div class="footer-social">
+        <div class="footer-container clearfix">
+            <div class="social-list">
+                
+                
+                <a class="social" target="blank" href="mailto:wu.pen1120@gmail.com">Email</a>  
+                
+                <a class="social" target="blank" href="https://github.com/pen1120">Github</a>  
+                
+                <a class="social" target="blank" href="https://pen1120.github.io/index.xml">RSS</a>  
+            </div>
+        </div>
+    </div>
+    <div class="footer-meta">
+        <div class="footer-container">
+            <div class="meta-item meta-copyright">
+                <div class="meta-copyright-info">
+                    <br>
+                    <div class="info-text">
+                        <p id="chakhsu"> </p>
+                        <p>Theme is <a href="https://github.com/mjyi/Gemini" target="_blank" rel="nofollow">Gemini</a> by Chakhsu</p>
+                        <p>Powered by <a href="https://gohugo.io/" target="_blank" rel="nofollow">Hugo</a></p>
+                        <p> &copy; 2017 <a href="https://pen1120.github.io">pen.wyp</a></p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="meta-item meta-comments">
+                <h3 class="meta-title">CATEGORIES</h3>
+                <li><a href="https://pen1120.github.io/categories/mysql">Mysql</a>(3)</li>
+                <li><a href="https://pen1120.github.io/categories/ubuntu">Ubuntu</a>(1)</li>
+            </div>
+            <div class="meta-item meta-posts">
+                <h3 class="meta-title">RECENT POSTS</h3>
+                 
+                <li><a href="https://pen1120.github.io/post/ubuntu%E9%87%8D%E8%A3%85/">Ubuntu重装</a></li>
+                  
+                <li><a href="https://pen1120.github.io/post/%E8%87%AA%E5%A2%9E%E9%94%81/">自增锁</a></li>
+                  
+                <li><a href="https://pen1120.github.io/post/oak/">Oak</a></li>
+                  
+                <li><a href="https://pen1120.github.io/post/mysql/%E5%88%9D%E5%A7%8B%E5%8C%96%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6/">初始化主从复制</a></li>
+                   
+
+            </div>
+        </div>
+    </div>
+    </div>
+</footer>
+
+ 
+    <div id="directory-content" class="directory-content">
+        <div id="directory"></div>
+    </div>
+    <script>
+    var postDirectoryBuild = function() {
+        var postChildren = function children(childNodes, reg) {
+                var result = [],
+                    isReg = typeof reg === 'object',
+                    isStr = typeof reg === 'string',
+                    node, i, len;
+                for (i = 0, len = childNodes.length; i < len; i++) {
+                    node = childNodes[i];
+                    if ((node.nodeType === 1 || node.nodeType === 9) && (!reg || isReg && reg.test(node.tagName.toLowerCase()) || isStr && node.tagName.toLowerCase() === reg)) {
+                        result.push(node);
+                    }
+                }
+                return result;
+            },
+            createPostDirectory = function(article, directory, isDirNum) {
+                var contentArr = [],
+                    titleId = [],
+                    levelArr, root, level, currentList, list, li, link, i, len;
+                levelArr = (function(article, contentArr, titleId) {
+                    var titleElem = postChildren(article.childNodes, /^h\d$/),
+                        levelArr = [],
+                        lastNum = 1,
+                        lastRevNum = 1,
+                        count = 0,
+                        guid = 1,
+                        id = 'directory' + (Math.random() + '').replace(/\D/, ''),
+                        lastRevNum, num, elem;
+                    while (titleElem.length) {
+                        elem = titleElem.shift();
+                        contentArr.push(elem.innerHTML);
+                        num = +elem.tagName.match(/\d/)[0];
+                        if (num > lastNum) {
+                            levelArr.push(1);
+                            lastRevNum += 1;
+                        } else if (num === lastRevNum || num > lastRevNum && num <= lastNum) {
+                            levelArr.push(0);
+                            lastRevNum = lastRevNum;
+                        } else if (num < lastRevNum) {
+                            levelArr.push(num - lastRevNum);
+                            lastRevNum = num;
+                        }
+                        count += levelArr[levelArr.length - 1];
+                        lastNum = num;
+                        elem.id = elem.id || (id + guid++);
+                        titleId.push(elem.id);
+                    }
+                    if (count !== 0 && levelArr[0] === 1) levelArr[0] = 0;
+                    return levelArr;
+                })(article, contentArr, titleId);
+                currentList = root = document.createElement('ul');
+                dirNum = [0];
+                for (i = 0, len = levelArr.length; i < len; i++) {
+                    level = levelArr[i];
+                    if (level === 1) {
+                        list = document.createElement('ul');
+                        if (!currentList.lastElementChild) {
+                            currentList.appendChild(document.createElement('li'));
+                        }
+                        currentList.lastElementChild.appendChild(list);
+                        currentList = list;
+                        dirNum.push(0);
+                    } else if (level < 0) {
+                        level *= 2;
+                        while (level++) {
+                            if (level % 2) dirNum.pop();
+                            currentList = currentList.parentNode;
+                        }
+                    }
+                    dirNum[dirNum.length - 1]++;
+                    li = document.createElement('li');
+                    link = document.createElement('a');
+                    link.href = '#' + titleId[i];
+                    link.innerHTML = !isDirNum ? contentArr[i] : dirNum.join('.') + ' ' + contentArr[i];
+                    li.appendChild(link);
+                    currentList.appendChild(li);
+                }
+                directory.appendChild(root);
+            };
+        createPostDirectory(document.getElementById('post-content'), document.getElementById('directory'), true);
+    };
+    postDirectoryBuild();
+    </script> 
+
+
+<script src="//cdn.bootcss.com/headroom/0.9.1/headroom.min.js"></script>
+<script src="//cdn.bootcss.com/highlight.js/9.10.0/highlight.min.js"></script>
+<script src="https://pen1120.github.io/js/instantclick.min.js?v20140319"></script>
+<script src="//cdn.bootcss.com/fastclick/1.0.6/fastclick.min.js"></script>
+<script>
+
+
+    var postDirectory = new Headroom(document.getElementById("directory-content"), {
+        tolerance: 0,
+        offset: 90,
+        classes: {
+            initial: "initial",
+            pinned: "pinned",
+            unpinned: "unpinned"
+        }
+    });
+    postDirectory.init();
+
+
+     var postSharer = new Headroom(document.getElementById("post-bottom-bar"), {
+        tolerance: 0,
+        offset: 70,
+        classes: {
+            initial: "animated",
+            pinned: "pinned",
+            unpinned: "unpinned"
+        }
+    });
+    postSharer.init();
+
+
+
+
+    var header = new Headroom(document.getElementById("header"), {
+        tolerance: 0,
+        offset: 70,
+        classes: {
+            initial: "animated",
+            pinned: "slideDown",
+            unpinned: "slideUp"
+        }
+    });
+    header.init();
+    var chakhsu = function (r) {
+        function t() {
+            return b[Math.floor(Math.random() * b.length)]
+        }
+
+        function e() {
+            return String.fromCharCode(94 * Math.random() + 33)
+        }
+
+        function n(r) {
+            for (var n = document.createDocumentFragment(), i = 0; r > i; i++) {
+                var l = document.createElement("span");
+                l.textContent = e(), l.style.color = t(), n.appendChild(l)
+            }
+            return n
+        }
+
+        function i() {
+            var t = o[c.skillI];
+            c.step ? c.step-- : (c.step = g, c.prefixP < l.length ? (c.prefixP >= 0 && (c.text += l[c.prefixP]), c.prefixP++) : "forward" === c.direction ? c.skillP < t.length ? (c.text += t[c.skillP], c.skillP++) : c.delay ? c.delay-- : (c.direction = "backward", c.delay = a) : c.skillP > 0 ? (c.text = c.text.slice(0, -1), c.skillP--) : (c.skillI = (c.skillI + 1) % o.length, c.direction = "forward")), r.textContent = c.text, r.appendChild(n(c.prefixP < l.length ? Math.min(s, s + c.prefixP) : Math.min(s, t.length - c.skillP))), setTimeout(i, d)
+        }
+        var l = "",
+            o = ["I am a DBA","Work in Guangzhou"].map(function (r) {
+                return r + "."
+            }),
+            a = 2,
+            g = 1,
+            s = 5,
+            d = 75,
+            b = ["rgb(110,64,170)", "rgb(150,61,179)", "rgb(191,60,175)", "rgb(228,65,157)", "rgb(254,75,131)", "rgb(255,94,99)", "rgb(255,120,71)", "rgb(251,150,51)", "rgb(226,183,47)", "rgb(198,214,60)", "rgb(175,240,91)", "rgb(127,246,88)", "rgb(82,246,103)", "rgb(48,239,130)", "rgb(29,223,163)", "rgb(26,199,194)", "rgb(35,171,216)", "rgb(54,140,225)", "rgb(76,110,219)", "rgb(96,84,200)"],
+            c = {
+                text: "",
+                prefixP: -s,
+                skillI: 0,
+                skillP: 0,
+                direction: "forward",
+                delay: a,
+                step: g
+            };
+        i()
+    };
+    chakhsu(document.getElementById('chakhsu'));
+    if ('addEventListener' in document) {
+        document.addEventListener('DOMContentLoaded', function () {
+            FastClick.attach(document.body);
+        }, false);
+    }
+
+</script>
+<script type="text/x-mathjax-config"> MathJax.Hub.Config({ showProcessingMessages: false, messageStyle: "none", extensions: ["tex2jax.js"], jax: ["input/TeX",
+    "output/HTML-CSS"], tex2jax: { inlineMath: [ ['$','$'], ["\\(","\\)"] ], displayMath: [ ['$$','$$'], ["\\[","\\]"] ],
+    skipTags: ['script', 'noscript', 'style', 'textarea', 'pre','code','a'], ignoreClass:"comment-content" }, "HTML-CSS":
+    { availableFonts: ["STIX","TeX"], showMathMenu: false } }); MathJax.Hub.Queue(["Typeset",MathJax.Hub]); </script>
+<script src="//cdn.bootcss.com/mathjax/2.7.0/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+<script data-no-instant>
+    InstantClick.on('change', function (isInitialLoad) {
+        var blocks = document.querySelectorAll('pre code');
+        for (var i = 0; i < blocks.length; i++) {
+            hljs.highlightBlock(blocks[i]);
+        }
+        if (isInitialLoad === false) {
+            if (typeof ga !== 'undefined') ga('send', 'pageview', location.pathname + location.search);
+            if (typeof MathJax !== 'undefined') {
+                MathJax.Hub.Queue(["Typeset", MathJax.Hub]);
+            }
+        }
+    });
+    InstantClick.init('mousedown');
+
+</script>
+
+
+</body>
+
+</html>

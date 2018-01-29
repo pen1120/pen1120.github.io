@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Tags on Zen</title>
+    <link>https://pen1120.github.io/tags/</link>
+    <description>Recent content in Tags on Zen</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Fri, 26 Jan 2018 21:12:18 +0800</lastBuildDate>
+    
+	<atom:link href="https://pen1120.github.io/tags/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Mysql</title>
+      <link>https://pen1120.github.io/tags/mysql/</link>
+      <pubDate>Fri, 26 Jan 2018 21:12:18 +0800</pubDate>
+      
+      <guid>https://pen1120.github.io/tags/mysql/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Non Tech</title>
+      <link>https://pen1120.github.io/tags/non-tech/</link>
+      <pubDate>Fri, 26 Jan 2018 21:16:21 +0800</pubDate>
+      
+      <guid>https://pen1120.github.io/tags/non-tech/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Tech</title>
+      <link>https://pen1120.github.io/tags/tech/</link>
+      <pubDate>Fri, 26 Jan 2018 21:12:18 +0800</pubDate>
+      
+      <guid>https://pen1120.github.io/tags/tech/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Ubuntu</title>
+      <link>https://pen1120.github.io/tags/ubuntu/</link>
+      <pubDate>Fri, 26 Jan 2018 21:16:21 +0800</pubDate>
+      
+      <guid>https://pen1120.github.io/tags/ubuntu/</guid>
+      <description></description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Non Tech on Zen</title>
+    <link>https://pen1120.github.io/tags/non-tech/</link>
+    <description>Recent content in Non Tech on Zen</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>en-us</language>
+    <lastBuildDate>Fri, 26 Jan 2018 21:16:21 +0800</lastBuildDate>
+    
+	<atom:link href="https://pen1120.github.io/tags/non-tech/index.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Ubuntu重装</title>
+      <link>https://pen1120.github.io/post/ubuntu%E9%87%8D%E8%A3%85/</link>
+      <pubDate>Fri, 26 Jan 2018 21:16:21 +0800</pubDate>
+      
+      <guid>https://pen1120.github.io/post/ubuntu%E9%87%8D%E8%A3%85/</guid>
+      <description>#-2 vi ~/.bashrc
+alias vb=&#39;vi ~/.bashrc&#39; alias sb=&#39;source ~/.bashrc&#39; alias dow=&#39;cd /home/pen/Downloads&#39; alias doc=&#39;cd /home/pen/Documents&#39; alias af=&#39;sudo apt -f install&#39; alias au=&#39;sudo apt update&#39; alias arm=&#39;sudo apt autoremove&#39; #mysql alias m9527=&#39;/apps/svr/mysql/bin/mysql -udba --socket=/tmp/mysql9527.sock -plocaldba&#39; alias sm9527=&#39;/apps/svr/mysql/bin/mysqld_safe --defaults-file=/apps/conf/mysql/mysql57_9527.cnf &amp;amp; &amp;gt;/dev/null&#39; alias lm=&amp;quot;ps aux | grep mysql &amp;quot; export XMODIFIERS=&amp;quot;@im=fcitx&amp;quot; export PATH=$PATH:/apps/svr/mysql/bin  #-1 apt换源
+#北京的apt选择搜狐源，广东的apt选择网易源 #但是要提防换源可能导致apt resource里的依赖库版本过高，以至于很多软件无法正常安装 sudo cp /etc/apt/sources.list /etc/apt/sources.list.bak sudo echo &#39;&#39; &amp;gt; /etc/apt/sources.list &amp;amp;&amp;amp; sudo vi /etc/apt/sources.list  deb http://mirrors.</description>
+    </item>
+    
+  </channel>
+</rss>
